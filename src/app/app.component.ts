@@ -10,29 +10,39 @@ export class AppComponent {
 
   title = 'motor-racing-manager';
 
-  waypoints: any = null
+  circuito: any = null
+  pitlane: any = null
   properties: any = null
 
   voltaAtual: number = 1
  
   jogadores = [
     {
-      x: 272.21954,
-      y: 69.086914,
-      xCircuit: 272.21954,
-      yCircuit: 69.086914,
-      waypoint: 1,
-      poder: 4,
-      volta: 1
-    },
-    {
-      x: 272.21954,
-      y: 69.086914,
-      xCircuit: 272.21954,
-      yCircuit: 69.086914,
       waypoint: 1,
       poder: 3,
-      volta: 1
+      volta: 1,
+      entrarPit: true,
+      noPit: false,
+      carNumber: 50,
+      largada: 1
+    },
+    {
+      waypoint: 1,
+      poder: 3,
+      volta: 1,
+      entrarPit: false,
+      noPit: false,
+      carNumber: 14,
+      largada: 9
+    },
+    {
+      waypoint: 1,
+      poder: 3,
+      volta: 1,
+      entrarPit: false,
+      noPit: false,
+      carNumber: 22,
+      largada: 4
     }
   ]
 
@@ -40,8 +50,18 @@ export class AppComponent {
   }
 
   constructor() {
-    this.waypoints = data.default.features[0].geometry.coordinates
+    this.circuito = data.default.features[0].geometry.coordinates
+    this.pitlane = data.default.features[0].geometry.pitLane
     this.properties = data.default.features[0].properties
+    
+    let {x1, y1, x2, y2} = this.properties.retaLargada
+
+    this.jogadores.forEach(it => {
+      it.x = ((x1 - x2) / 20 * it.largada) + x2
+      it.y = ((y1 - y2) / 20 * it.largada) + y2
+      this.print(it)
+    })
+
     this.iniciarCorrida()
   }
 
@@ -54,8 +74,9 @@ export class AppComponent {
   }
 
   moverJogador(jogador: any) {
-    let xWaypoint = this.waypoints[jogador.waypoint][0]
-    let yWaypoint = this.waypoints[jogador.waypoint][1]
+    let waypoints = jogador.noPit ? this.pitlane : this.circuito 
+    let xWaypoint = waypoints[jogador.waypoint][0]
+    let yWaypoint = waypoints[jogador.waypoint][1]
 
     let distanciaX = jogador.x - xWaypoint
     let diminuirX = distanciaX < 0 
@@ -69,9 +90,16 @@ export class AppComponent {
     let porcentagemX = distanciaX / totalDistancia 
     let porcentagemY = distanciaY / totalDistancia
 
-    let xAMover = porcentagemX * jogador.poder
-    let yAMover = porcentagemY * jogador.poder
+    let poder = 2 / (Math.floor(Math.random() * 10) + 1)
+
+    let xAMover = porcentagemX * (jogador.poder + poder) 
+    let yAMover = porcentagemY * (jogador.poder + poder) 
    
+    if (jogador.noPit) {
+      xAMover /= 3
+      yAMover /= 3
+    }
+
     let chegouX = false
     let chegouY = false
 
@@ -94,19 +122,31 @@ export class AppComponent {
         jogador.y += yAMover
       else
         jogador.y -= yAMover
-
+    
     if (jogador.x == xWaypoint && jogador.y == yWaypoint) {
-      if (this.waypoints.length - 1 == jogador.waypoint) {
+      if (waypoints.length - 1 == jogador.waypoint) {
         jogador.waypoint = 0
         jogador.volta += 1
         if (jogador.volta > this.voltaAtual) {
           this.voltaAtual += 1
         }
+        if (jogador.noPit) {
+          jogador.noPit = false
+          jogador.waypoint = this.properties.saidaNoPit
+        }
       } else {
+        if (jogador.entrarPit && jogador.waypoint == this.properties.entradaNoPit) {
+          jogador.noPit = true
+          jogador.waypoint = 0
+          jogador.volta += 1
+        }
         jogador.waypoint += 1
       }
     }
+    this.print(jogador)
+  }
 
+  print(jogador: any) {
     jogador.xCircuit = 560 / 955 * jogador.x - 6
     jogador.yCircuit = 560 / 955 * jogador.y - 6
   }
