@@ -1,0 +1,27 @@
+.content {
+    margin-right: 15px;
+    margin-left: 15px;;
+}
+
+.autodromo {
+    position: relative;
+    
+    min-width: 560px;
+    max-width: 563px;
+    
+    min-height: 560px;
+    max-height: 563px;
+}
+
+.carro {
+    background-color: aqua;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    z-index: 10;
+}
+
+.coiso {
+    color: aqua;
+}
